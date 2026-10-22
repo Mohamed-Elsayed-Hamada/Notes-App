@@ -32,6 +32,12 @@ sealed interface NotesScreenEffect {
 
     data class NavigateToDetail(val noteId: String?) : NotesScreenEffect
 }
+sealed interface FoldersScreenEffect {
+    data class ShowSnackbar(val message: String, val actionLabel: String? = null) :
+        FoldersScreenEffect
+
+    data class NavigateToDetail(val folderid: String?) : FoldersScreenEffect
+}
 
 /**
  * Intents for Note Detail/Editor

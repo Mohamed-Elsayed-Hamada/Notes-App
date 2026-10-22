@@ -18,9 +18,20 @@ data class Note(
     val attachmentsCount: Int = 0,
     val cardIcon: String? = null, // "book", "palette", "chat"
     val dateFormatted: String = "Today",
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    val isDeleted : Boolean = false,
+    val deletedAt : Long = System.currentTimeMillis(),
+    val isArchived : Boolean = false
 )
 
-
+data class Folder(
+    val id: String = UUID.randomUUID().toString(),
+    val title: String,
+    val icon : Int,
+    val updatedAt: Long = System.currentTimeMillis(),
+    val notesList: List<Note> = emptyList(),
+    val categoryList: List<String> = emptyList(),
+    val isPinned: Boolean = false
+)
 
 

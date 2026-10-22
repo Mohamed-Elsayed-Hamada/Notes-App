@@ -8,7 +8,8 @@ data class FoldersScreenViewState(
     val searchQuery: String = "",
     val activeMenuFolderId: String? = null,
     val selectedSort: String = "Recent",
-    val userMessage: String? = null
+    val userMessage: String? = null,
+    val activeTab : String = "Folders"
 ) {
     val displayFolders: List<Folder>
         get() = if (searchQuery.isBlank()) {

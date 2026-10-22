@@ -165,6 +165,8 @@ class NotesScreenViewModel @Inject constructor(
             is NotesScreenIntent.DismissMessage -> {
                 _viewState.update { it.copy(userMessage = null) }
             }
+
+            else -> {}
         }
     }
 }

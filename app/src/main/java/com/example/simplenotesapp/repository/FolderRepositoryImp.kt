@@ -15,9 +15,11 @@ class FolderRepositoryImp : FolderRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun deleteFolder(folder: Folder): Folder? {
+    override suspend fun deleteFolder(folderId: String): Folder? {
         TODO("Not yet implemented")
     }
+
+
 
     override suspend fun togglePin(folderId: String) {
         TODO("Not yet implemented")

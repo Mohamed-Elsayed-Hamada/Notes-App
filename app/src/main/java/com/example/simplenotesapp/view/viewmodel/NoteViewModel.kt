@@ -39,6 +39,23 @@ class NoteViewModel @Inject constructor(
             is NoteDetailIntent.SaveNote -> {
                 saveNote()
             }
+            is NoteDetailIntent.GetNoteDetails ->{
+                viewModelScope.launch {
+                    val note = repository.getNoteById( intent.id)
+                    if(note != null){
+                        _viewState.update {
+                            it.copy(id = intent.id , title = note.title  ,
+                                body = note.body , category = note.category,
+                                isPinned = note.isPinned)
+                        }
+                    }
+                }
+            }
+            is NoteDetailIntent.UpdateNote ->{
+                viewModelScope.launch{
+                    repository.updateNote(intent.note)
+                }
+            }
         }
     }
 

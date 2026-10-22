@@ -1,5 +1,7 @@
 package com.example.simplenotesapp.view.uimodel
 
+import com.example.simplenotesapp.model.Note
+
 /**
  * Intents representing user actions or system events on NotesScreen.
  */
@@ -40,4 +42,6 @@ sealed interface NoteDetailIntent {
     data class UpdateCategory(val category: String) : NoteDetailIntent
     data object TogglePin : NoteDetailIntent
     data object SaveNote : NoteDetailIntent
+    data class GetNoteDetails(val id : String) : NoteDetailIntent
+    data class UpdateNote(val note : Note) : NoteDetailIntent
 }

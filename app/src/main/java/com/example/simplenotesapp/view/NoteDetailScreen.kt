@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,11 +40,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.simplenotesapp.model.Note
-import com.example.simplenotesapp.repository.NoteRepositoryImp
 import com.example.simplenotesapp.ui.theme.BannerCircleBg
 import com.example.simplenotesapp.ui.theme.SurfaceLight
 import com.example.simplenotesapp.ui.theme.TextSecondary
 import com.example.simplenotesapp.view.components.AppIcons
+import com.example.simplenotesapp.view.uimodel.NoteDetailIntent
+import com.example.simplenotesapp.view.viewmodel.NoteViewModel
 import kotlinx.coroutines.launch
 
 // Figma Colors from Node 1:258
@@ -68,10 +70,17 @@ private val DotSeparatorColor = Color(0xFFC7C4D8)
  * colors, typography, layout dimensions, and assets.
  */
 @Composable
+fun preview() {
+
+}
+
+@Composable
 fun NoteDetailScreen(
     noteId: String,
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    viewModel: NoteViewModel
 ) {
+    val state = viewModel.viewState.collectAsState()
     var noteState by remember { mutableStateOf<Note>(Note("", "")) }
 //    var title by remember { mutableStateOf("") }
 //    var isPinned by remember { mutableStateOf(false) }
@@ -84,13 +93,11 @@ fun NoteDetailScreen(
 ////            "Publish tactile guidelines to team workspace" to false
 //        )
 //    }
-    var scope = rememberCoroutineScope  ()
-    var repository = NoteRepositoryImp()
+    var scope = rememberCoroutineScope()
+
     LaunchedEffect(key1 = null) {
-        var note: Note? = repository.getNoteById(noteId)
-        if (note != null) {
-            noteState = note
-        }
+        viewModel.handleIntent(NoteDetailIntent.GetNoteDetails(noteId))
+
     }
 
     Scaffold(
@@ -199,9 +206,16 @@ fun NoteDetailScreen(
                             .clip(RoundedCornerShape(9999.dp))
                             .background(BrandBlue)
                             .clickable {
-                               scope.launch {
-                                   repository.updateNote(noteState)
-                               }
+                                scope.launch {
+                                    val note: Note = Note(
+                                        noteId,
+                                        state.value.title,
+                                        body = state.value.body,
+                                        isPinned = state.value.isPinned,
+                                        category = state.value.category
+                                    )
+                                    viewModel.handleIntent(NoteDetailIntent.UpdateNote(note))
+                                }
 //                                onNavigateBack()
 
                             }
@@ -258,12 +272,13 @@ fun NoteDetailScreen(
                     )
                 }
 
-                // Pinned Badge
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .background(BadgePinnedBg)
-                        .clickable { noteState.copy(isPinned = !noteState.isPinned) }
+                        .clickable {
+                            state.value.copy(isPinned = !state.value.isPinned)
+                        }
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
 
@@ -287,23 +302,39 @@ fun NoteDetailScreen(
             // 3. Sticky Mobile Formatting Accessory Bar
             Column(
                 Modifier
-                    .clip( shape = RoundedCornerShape(10.dp))
+                    .clip(shape = RoundedCornerShape(10.dp))
 
                     .background(SurfaceLight)
-                    .padding(5.dp).fillMaxSize().weight(1f)
+                    .padding(5.dp)
+                    .fillMaxSize()
+                    .weight(1f)
+                    .padding(6.dp)
             ) {
                 Text("Created just now ", style = TextStyle(color = TextSecondary))
                 Spacer(Modifier.height(10.dp))
                 BasicTextField(
-                    value = noteState.title,
-                    onValueChange = { noteState = noteState.copy(title = it) },
+                    value = state.value.title,
+                    onValueChange = { viewModel.handleIntent(NoteDetailIntent.UpdateTitle(it)) },
                     textStyle = TextStyle(
                         fontSize = 26.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = TextMain,
                         lineHeight = 32.sp
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (state.value.title.isEmpty()) {
+                                Text(
+                                    text = "Note Title...",
+                                    fontSize = 26.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextSecondary
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
                 )
                 Spacer(Modifier.height(10.dp))
                 Box(
@@ -464,8 +495,8 @@ fun NoteDetailScreen(
                     }
                 }
                 BasicTextField(
-                    value = noteState.body,
-                    onValueChange = { noteState = noteState.copy(body = it) },
+                    value = state.value.body,
+                    onValueChange = { viewModel.handleIntent(NoteDetailIntent.UpdateBody(it)) },
                     textStyle = TextStyle(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Normal,
@@ -478,126 +509,17 @@ fun NoteDetailScreen(
 
             }
 
-//            Spacer(Modifier.height(14.dp))
-
-            // 4. Note Writing Surface
-            // Title Input
-//            BasicTextField(
-//                value = noteState.title,
-//                onValueChange = { noteState = noteState.copy(title = it) },
-//                textStyle = TextStyle(
-//                    fontSize = 26.sp,
-//                    fontWeight = FontWeight.SemiBold,
-//                    color = TextMain,
-//                    lineHeight = 32.sp
-//                ),
-//                modifier = Modifier.fillMaxWidth()
-//            )
 
             Spacer(Modifier.height(8.dp))
 
-            // Metadata Snippet
 
 
             Spacer(Modifier.height(16.dp))
 
-            // Body Paragraphs Editor
-//                    Spacer(Modifier.height(4.dp))
-//                    Text(
-//                        text = "Every element must serve readability. Avoid high-saturation decorative items that distract from reading and writing.",
-//                        fontSize = 17.sp,
-//                        fontWeight = FontWeight.Normal,
-//                        color = TextMain,
-//                        lineHeight = 27.6.sp
-//                    )
-//                }
-//
-//                // Section 2
-//                Column {
-//                    Text(
-//                        text = "2. Consistent Spacing & Rhythms",
-//                        fontSize = 17.sp,
-//                        fontWeight = FontWeight.SemiBold,
-//                        color = TextMain,
-//                        lineHeight = 22.sp
-//                    )
-//                    Spacer(Modifier.height(4.dp))
-//                    Text(
-//                        text = "Use 8pt grid increments for vertical cadence. Headings should feel anchored to their preceding paragraphs with deliberate whitespace.",
-//                        fontSize = 17.sp,
-//                        fontWeight = FontWeight.Normal,
-//                        color = TextMain,
-//                        lineHeight = 27.6.sp
-//                    )
-//                }
-//
-//                // Section 3
-//                Column {
-//                    Text(
-//                        text = "3. Accessible Contrast",
-//                        fontSize = 17.sp,
-//                        fontWeight = FontWeight.SemiBold,
-//                        color = TextMain,
-//                        lineHeight = 22.sp
-//                    )
-//                    Spacer(Modifier.height(4.dp))
-//                    Text(
-//                        text = "Ensure minimum 4.5:1 ratio for body copy against light backgrounds.",
-//                        fontSize = 17.sp,
-//                        fontWeight = FontWeight.Normal,
-//                        color = TextMain,
-//                        lineHeight = 27.6.sp
-//                    )
-//                }
-//            }
-
             Spacer(Modifier.height(18.dp))
-
-            // Interactive Checklists
-//            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-//                checklistItems.forEachIndexed { index, (text, isChecked) ->
-//                    Row(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .clickable {
-//                                checklistItems[index] = text to !isChecked
-//                            },
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-//                    ) {
-//                        // Checkbox
-//                        Box(
-//                            modifier = Modifier
-//                                .size(20.dp)
-//                                .clip(RoundedCornerShape(4.dp))
-//                                .background(if (isChecked) BrandBlue else CheckboxUncheckedBg),
-//                            contentAlignment = Alignment.Center
-//                        ) {
-//                            if (isChecked) {
-//                                Icon(
-//                                    imageVector = AppIcons.CheckMark,
-//                                    contentDescription = null,
-//                                    tint = Color.White,
-//                                    modifier = Modifier.size(10.dp)
-//                                )
-//                            }
-//                        }
-//
-//                        Text(
-//                            text = text,
-//                            fontSize = 15.sp,
-//                            fontWeight = FontWeight.Normal,
-//                            color = TextMain,
-//                            lineHeight = 22.sp,
-//                            textDecoration = if (isChecked) TextDecoration.LineThrough else TextDecoration.None
-//                        )
-//                    }
-//                }
-//            }
 
             Spacer(Modifier.height(32.dp))
 
-            // 5. Interactive Bottom Note Telemetry Footer
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -14,6 +14,7 @@ import com.example.simplenotesapp.view.Home
 import com.example.simplenotesapp.view.NoteDetailScreen
 import com.example.simplenotesapp.view.NoteDetails
 import com.example.simplenotesapp.view.NotesScreen
+import com.example.simplenotesapp.view.viewmodel.NoteViewModel
 import com.example.simplenotesapp.view.viewmodel.NotesScreenViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -26,6 +27,7 @@ class MainActivity : ComponentActivity() {
             SimpleNotesAppTheme {
 //                var currentScreen by remember { mutableStateOf<String>("home") }
                 val viewModel: NotesScreenViewModel = hiltViewModel()
+                val noteviewModel: NoteViewModel = hiltViewModel()
                 val navController = rememberNavController()
                 NavHost(navController, startDestination = Home) {
                     composable<Home> {
@@ -40,7 +42,9 @@ class MainActivity : ComponentActivity() {
                         val noteId = NoteRoute.id
                         NoteDetailScreen(
                             noteId = noteId, onNavigateBack =
-                                { navController.popBackStack() })
+                                { navController.popBackStack() },
+                            noteviewModel
+                        )
                     }
                 }
 //
